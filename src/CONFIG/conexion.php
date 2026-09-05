@@ -5,7 +5,7 @@ if (!class_exists('Clase_Conexion')) {
     $puerto = '3306';
     $usuario = 'root';
     $contra = '';
-    $base = 'RENIEC';
+    $base = 'gestion_proyectos';
 
     class Clase_Conexion
     {

@@ -1,5 +1,6 @@
 <?php
 require_once('CONFIG/conexion.php');
+
 class Clase_Modelo {
     private $con;
 
@@ -9,7 +10,7 @@ class Clase_Modelo {
 
     public function Metodo_Listar() {
         // Método para listar todos los registros de la tabla clientes
-        $query = "SELECT * FROM clientes";
+        $query = "SELECT * FROM Cliente";
         $result = mysqli_query($this->con, $query);
 
         if (!$result) {
@@ -18,48 +19,75 @@ class Clase_Modelo {
 
         $datos = [];
         while ($row = mysqli_fetch_assoc($result)) {
-            $datos[] = $row; // Almacena cada fila de resultado en un array
+            $datos[] = $row;
         }
 
-        return $datos; // Retorna un array con todos los registros de clientes
+        return $datos;
     }
 
-    public function Metodo_Insertar($id_cliente, $documento, $razon_social, $correo, $telefono, $estado) {
-        // Método para insertar un nuevo registro en la tabla clientes
-        $insertQuery = "INSERT INTO clientes (id_cliente, documento, razon_social, correo, telefono, estado) 
-                        VALUES ('$id_cliente', '$documento', '$razon_social', '$correo', '$telefono', '$estado')";
-        if (mysqli_query($this->con, $insertQuery)) {
-            return "Cliente insertado correctamente."; // Retorna mensaje de éxito
+    public function Metodo_Insertar($documento, $razon_social, $correo, $telefono, $estado) {
+        // Usar consulta preparada para evitar inyección SQL
+        $insertQuery = "INSERT INTO Cliente (documento, razon_social, correo, telefono, estado) 
+                        VALUES (?, ?, ?, ?, ?)";
+        
+        $stmt = mysqli_prepare($this->con, $insertQuery);
+        mysqli_stmt_bind_param($stmt, "sssss", $documento, $razon_social, $correo, $telefono, $estado);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return "Cliente insertado correctamente.";
         } else {
-            return "Error al insertar cliente: " . mysqli_error($this->con); // Retorna mensaje de error
+            $error = mysqli_error($this->con);
+            mysqli_stmt_close($stmt);
+            return "Error al insertar cliente: " . $error;
         }
     }
 
     public function Metodo_Editar($id_cliente, $documento, $razon_social, $correo, $telefono, $estado) {
-        // Método para actualizar un registro en la tabla clientes
-        $updateQuery = "UPDATE clientes SET documento='$documento', razon_social='$razon_social', correo='$correo', telefono='$telefono', estado='$estado' 
-                        WHERE id_cliente='$id_cliente'";
-        if (mysqli_query($this->con, $updateQuery)) {
-            return "Cliente actualizado correctamente."; // Retorna mensaje de éxito
+        // Usar consulta preparada
+        $updateQuery = "UPDATE Cliente SET documento=?, razon_social=?, correo=?, telefono=?, estado=? 
+                        WHERE id_cliente=?";
+        
+        $stmt = mysqli_prepare($this->con, $updateQuery);
+        mysqli_stmt_bind_param($stmt, "sssssi", $documento, $razon_social, $correo, $telefono, $estado, $id_cliente);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return "Cliente actualizado correctamente.";
         } else {
-            return "Error al actualizar cliente: " . mysqli_error($this->con); // Retorna mensaje de error
+            $error = mysqli_error($this->con);
+            mysqli_stmt_close($stmt);
+            return "Error al actualizar cliente: " . $error;
         }
     }
 
     public function Metodo_Eliminar($id_cliente) {
-        // Método para eliminar un registro de la tabla clientes
-        $deleteQuery = "DELETE FROM clientes WHERE id_cliente='$id_cliente'";
-        if (mysqli_query($this->con, $deleteQuery)) {
-            return "Cliente eliminado correctamente."; // Retorna mensaje de éxito
+        // Usar consulta preparada
+        $deleteQuery = "DELETE FROM Cliente WHERE id_cliente=?";
+        
+        $stmt = mysqli_prepare($this->con, $deleteQuery);
+        mysqli_stmt_bind_param($stmt, "i", $id_cliente);
+        
+        if (mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return "Cliente eliminado correctamente.";
         } else {
-            return "Error al eliminar cliente: " . mysqli_error($this->con); // Retorna mensaje de error
+            $error = mysqli_error($this->con);
+            mysqli_stmt_close($stmt);
+            return "Error al eliminar cliente: " . $error;
         }
     }
 
     public function Metodo_Ver($id_cliente) {
-        // Método para obtener un solo registro de la tabla clientes por su ID
-        $result = mysqli_query($this->con, "SELECT * FROM clientes WHERE id_cliente='$id_cliente'");
-        return mysqli_fetch_assoc($result); // Retorna los datos del cliente como un array asociativo
+        // Usar consulta preparada
+        $query = "SELECT * FROM Cliente WHERE id_cliente=?";
+        $stmt = mysqli_prepare($this->con, $query);
+        mysqli_stmt_bind_param($stmt, "i", $id_cliente);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+        return $row;
     }
 }
 ?>
