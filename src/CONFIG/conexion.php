@@ -1,34 +1,49 @@
 <?php
-// Protege contra inclusiones múltiples
 if (!class_exists('Clase_Conexion')) {
+
     $servidor = 'localhost';
-    $puerto = '5432';
-    $usuario = 'postgres';
-    $contra = 'postgres';
+    $puerto = '3306';
+    $usuario = 'root';
+    $contra = '';
     $base = 'RENIEC';
 
-    class Clase_Conexion {
-        public function Metodo_Conexion($servidor, $puerto, $usuario, $contra, $base) {
-            
-            $cadenaConexion = "
-                host=$servidor
-                port=$puerto
-                dbname=$base
-                user=$usuario
-                password=$contra
-            ";
+    class Clase_Conexion
+    {
+        public function Metodo_Conexion(
+            $servidor,
+            $puerto,
+            $usuario,
+            $contra,
+            $base
+        ) {
 
-            $con = pg_connect($cadenaConexion);
+            try {
 
-            if (!$con) {
-                die("Error de conexión a PostgreSQL");
+                $cadenaConexion = "mysql:host=$servidor;port=$puerto;dbname=$base;charset=utf8mb4";
+
+                $con = new PDO(
+                    $cadenaConexion,
+                    $usuario,
+                    $contra
+                );
+
+                // Mostrar errores de PDO como excepciones
+                $con->setAttribute(
+                    PDO::ATTR_ERRMODE,
+                    PDO::ERRMODE_EXCEPTION
+                );
+                
+                return $con;
+
+            } catch (PDOException $e) {
+
+                die("Error de conexión a MySQL: " . $e->getMessage());
             }
-
-            return $con;
         }
     }
 
     $Obj_Conexion = new Clase_Conexion();
+
     $Conectar = $Obj_Conexion->Metodo_Conexion(
         $servidor,
         $puerto,

@@ -1,75 +1,155 @@
 <?php
-require_once("MODELO/modelo.php");
 
+require_once("MODELO/proyecto.php");
 
-$Obj_Modelo = new Clase_Modelo($Conectar);
+$Obj_Modelo = new Clase_Proyecto($Conectar);
 $datos = [];
 
+
+// =====================================================
+// MÉTODOS GET
+// =====================================================
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
     if (isset($_GET['action'])) {
+
         $action = $_GET['action'];
 
+
+        // LISTAR PROYECTOS
         if ($action === 'list') {
+
             $datos = $Obj_Modelo->Metodo_Listar();
+
             require_once("VISTA/index.php");
+
+
+        // VER PROYECTO
         } elseif ($action === 'view') {
+
             $id = $_GET['id'];
-            $alumno = $Obj_Modelo->Metodo_Ver($id);
+
+            $proyecto = $Obj_Modelo->Metodo_Seleccionar($id);
+
             require_once("VISTA/view.php");
+
+
+        // EDITAR PROYECTO
         } elseif ($action === 'edit') {
+
             $id = $_GET['id'];
-            $alumno = $Obj_Modelo->Metodo_Ver($id);
+
+            $proyecto = $Obj_Modelo->Metodo_Seleccionar($id);
+
             require_once("VISTA/edit.php");
+
+
+        // ELIMINAR PROYECTO
         } elseif ($action === 'delete') {
+
             $id = $_GET['id'];
-            // Mostrar confirmación de eliminación en un modal
-            $mensaje_eliminar = "¿Estás seguro de eliminar este registro?";
+
+            // Mostrar confirmación de eliminación
+            $mensaje_eliminar = "¿Estás seguro de eliminar este proyecto?";
+
             require_once("VISTA/delete_confirm.php");
         }
+
     } else {
-        $datos = $Obj_Modelo->Metodo_Listar(); // Por defecto listará los alumnos
+
+        // Por defecto, listar proyectos
+        $datos = $Obj_Modelo->Metodo_Listar();
+
         require_once("VISTA/index.php");
     }
 }
 
+
+// =====================================================
+// MÉTODOS POST
+// =====================================================
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     if (isset($_POST['action'])) {
+
         $action = $_POST['action'];
 
+
+        // =================================================
+        // INSERTAR
+        // =================================================
+
         if ($action === 'insert') {
-            $id = $_POST['id'];
+
             $nombre = $_POST['nombre'];
-            $sexo = $_POST['sexo'];
-            $edad = $_POST['edad'];
+            $descripcion = $_POST['descripcion'];
+            $fecha_inicio = $_POST['fecha_inicio'];
+            $fecha_fin = $_POST['fecha_fin'];
+            $estado = $_POST['estado'];
 
-            // Verificar si el ID ya existe
-            $alumno_existente = $Obj_Modelo->Metodo_Ver($id);
-            if ($alumno_existente) {
-                $mensaje_id_duplicado = true;
-                $datos = $Obj_Modelo->Metodo_Listar(); // Recargar lista de alumnos
-                require_once("VISTA/index.php");
-            } else {
-                $mensaje = $Obj_Modelo->Metodo_Insertar($id, $nombre, $sexo, $edad);
-                header("Location: index.php?action=list");
-                exit;
-            }
-        } elseif ($action === 'update') {
-            $id = $_POST['id'];
-            $nombre = $_POST['nombre'];
-            $sexo = $_POST['sexo'];
-            $edad = $_POST['edad'];
 
-            $mensaje = $Obj_Modelo->Metodo_Editar($id, $nombre, $sexo, $edad);
+            $mensaje = $Obj_Modelo->Metodo_Insertar(
+                $nombre,
+                $descripcion,
+                $fecha_inicio,
+                $fecha_fin,
+                $estado
+            );
 
-            // Redireccionar después de la actualización
+
+            // Redireccionar después de insertar
             header("Location: index.php?action=list");
             exit;
-        } elseif ($action === 'confirm_delete') {
+        }
+
+
+        // =================================================
+        // ACTUALIZAR
+        // =================================================
+
+        elseif ($action === 'update') {
+
+            $idproyecto = $_POST['idproyecto'];
+            $nombre = $_POST['nombre'];
+            $descripcion = $_POST['descripcion'];
+            $fecha_inicio = $_POST['fecha_inicio'];
+            $fecha_fin = $_POST['fecha_fin'];
+            $estado = $_POST['estado'];
+
+
+            $mensaje = $Obj_Modelo->Metodo_Actualizar(
+                $idproyecto,
+                $nombre,
+                $descripcion,
+                $fecha_inicio,
+                $fecha_fin,
+                $estado
+            );
+
+            header("Location: index.php?action=list");
+            exit;
+        }
+
+
+        // =================================================
+        // CONFIRMAR ELIMINACIÓN
+        // =================================================
+
+        elseif ($action === 'confirm_delete') {
+
             $id = $_POST['id'];
+
+
             $mensaje = $Obj_Modelo->Metodo_Eliminar($id);
+
+
+            // Redireccionar después de eliminar
             header("Location: index.php?action=list");
             exit;
         }
     }
 }
+
 ?>

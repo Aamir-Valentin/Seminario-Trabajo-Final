@@ -1,114 +1,151 @@
 <?php
+
 require_once('../CONFIG/conexion.php');
+
 class Clase_Modelo
 {
+    private $con;
 
-	private $con;
+    public function __construct($con)
+    {
+        $this->con = $con;
+    }
 
-	public function __construct($con)
-	{
-		$this->con = $con;
-	}
+    // LISTAR
+    public function Metodo_Listar()
+    {
+        $query = "SELECT * FROM usuario ORDER BY idusuario ASC";
 
-	public function Metodo_Listar()
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$query = "SELECT * FROM usuario ORDER BY idusuario ASC";
+        try {
+            $stmt = $this->con->prepare($query);
+            $stmt->execute();
 
-		$result = pg_query($this->con, $query);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 
-		$datos = [];
+    // SELECCIONAR POR ID
+    public function Metodo_Seleccionar($id)
+    {
+        $query = "SELECT * FROM usuario WHERE idusuario = :id";
 
-		while ($row = pg_fetch_assoc($result)) {
-			$datos[] = $row; // Almacena cada fila en el array
-		}
+        try {
+            $stmt = $this->con->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
 
-		return $datos; // Retorna todos los registros
-	}
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-	public function Metodo_Seleccionar($id)
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$query = "SELECT * FROM usuario WHERE idusuario=$id";
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 
-		$result = pg_query($this->con, $query);
+    // ELIMINAR
+    public function Metodo_Eliminar($id)
+    {
+        $query = "DELETE FROM usuario WHERE idusuario = :id";
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
+        try {
+            $stmt = $this->con->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
 
-		$datos = [];
+            return "ok";
 
-		while ($row = pg_fetch_assoc($result)) {
-			$datos[] = $row; // Almacena cada fila en el array
-		}
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 
-		return $datos; // Retorna todos los registros
-	}
+    // ACTUALIZAR
+    public function Metodo_Actualizar(
+        $idusuario,
+        $nombre,
+        $apellido,
+        $telefono,
+        $email
+    ) {
+        $query = "UPDATE usuario 
+                  SET nombre = :nombre,
+                      apellido = :apellido,
+                      telefono = :telefono,
+                      email = :email
+                  WHERE idusuario = :idusuario";
 
-	public function Metodo_Eliminar($id)
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$query = "DELETE FROM usuario WHERE idusuario=$id";
+        try {
+            $stmt = $this->con->prepare($query);
 
-		$result = pg_query($this->con, $query);
+            $stmt->bindParam(':idusuario', $idusuario, PDO::PARAM_INT);
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':apellido', $apellido);
+            $stmt->bindParam(':telefono', $telefono);
+            $stmt->bindParam(':email', $email);
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
-		return "ok"; // Retorna todos los registros
-	}
+            $stmt->execute();
 
-	public function Metodo_Actualizar($idusuario, $nombre, $apellido, $telefono, $email)
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$query = "UPDATE usuario SET nombre='$nombre',apellido='$apellido',TELEFONO='$telefono',EMAIL='$email' WHERE idusuario=$idusuario;";
+            return "ok";
 
-		$result = pg_query($this->con, $query);
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
-		return "ok"; // Retorna todos los registros
-	}
+    // INSERTAR
+    public function Metodo_Insertar(
+        $nombre,
+        $apellido,
+        $telefono,
+        $email
+    ) {
+        $query = "INSERT INTO usuario
+                  (nombre, apellido, telefono, email)
+                  VALUES
+                  (:nombre, :apellido, :telefono, :email)";
 
-	public function Metodo_Insertar($nombre, $apellido, $telefono, $email)
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$query = "INSERT INTO usuario(nombre,apellido,telefono,email) VALUES('$nombre','$apellido','$telefono','$email');";
+        try {
+            $stmt = $this->con->prepare($query);
 
-		$result = pg_query($this->con, $query);
+            $stmt->bindParam(':nombre', $nombre);
+            $stmt->bindParam(':apellido', $apellido);
+            $stmt->bindParam(':telefono', $telefono);
+            $stmt->bindParam(':email', $email);
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
-		return "ok"; // Retorna todos los registros
-	}
+            $stmt->execute();
 
-	public function Metodo_Login($email, $password)
-	{
-		// Método para listar todos los registros de la tabla usuario
-		$claveEncriptada = crypt($password, "salt"); // Encripta la contraseña utilizando un salt fijo (puedes usar un salt dinámico para mayor seguridad)
-		$query = "SELECT * FROM usuario WHERE email='$email' AND contrasena='$claveEncriptada';";
-		echo "SELECT * FROM usuario WHERE email='$email' AND contrasena='$claveEncriptada';";
-		exit;
-		$result = pg_query($this->con, $query);
+            return "ok";
 
-		if (!$result) {
-			die("Error en la consulta: " . pg_last_error($this->con));
-		}
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 
-		$datos = [];
+    // LOGIN
+    public function Metodo_Login($email, $password)
+    {
+        $query = "SELECT * 
+                  FROM usuario 
+                  WHERE email = :email";
 
-		while ($row = pg_fetch_assoc($result)) {
-			$datos[] = $row; // Almacena cada fila en el array
-		}
+        try {
+            $stmt = $this->con->prepare($query);
 
-		return $datos; // Retorna todos los registros
-	} 
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
 
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($usuario && password_verify($password, $usuario['contrasena'])) {
+                return [$usuario];
+            }
+
+            return [];
+
+        } catch (PDOException $e) {
+            die("Error en la consulta: " . $e->getMessage());
+        }
+    }
 }
